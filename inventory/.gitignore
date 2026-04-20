@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# SSH Keys (IMPORTANT)
+invent
+invent.pub
