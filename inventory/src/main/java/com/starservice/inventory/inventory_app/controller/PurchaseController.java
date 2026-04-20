@@ -1,10 +1,9 @@
-package com.starservice.inventory.inventory.controller;
+package com.starservice.inventory.inventory_app.controller;
 
-import com.starservice.inventory.inventory.dto.common.ApiResponse;
-import com.starservice.inventory.inventory.dto.purchase.PurchaseRequestDTO;
-import com.starservice.inventory.inventory.dto.purchase.PurchaseResponseDTO;
-import com.starservice.inventory.inventory.entity.Purchase;
-import com.starservice.inventory.inventory.service.PurchaseService;
+import com.starservice.inventory.inventory_app.dto.common.ApiResponse;
+import com.starservice.inventory.inventory_app.dto.purchase.PurchaseRequestDTO;
+import com.starservice.inventory.inventory_app.dto.purchase.PurchaseResponseDTO;
+import com.starservice.inventory.inventory_app.service.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

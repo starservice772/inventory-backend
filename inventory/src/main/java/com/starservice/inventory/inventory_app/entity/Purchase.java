@@ -1,4 +1,4 @@
-package com.starservice.inventory.inventory.entity;
+package com.starservice.inventory.inventory_app.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
