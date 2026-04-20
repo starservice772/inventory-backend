@@ -1,4 +1,4 @@
-package com.starservice.inventory.inventory.dto.purchase;
+package com.starservice.inventory.inventory_app.dto.purchase;
 
 import lombok.Builder;
 import lombok.Data;

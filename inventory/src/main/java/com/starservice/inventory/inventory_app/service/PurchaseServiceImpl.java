@@ -1,9 +1,9 @@
-package com.starservice.inventory.inventory.service;
+package com.starservice.inventory.inventory_app.service;
 
-import com.starservice.inventory.inventory.dto.purchase.PurchaseRequestDTO;
-import com.starservice.inventory.inventory.dto.purchase.PurchaseResponseDTO;
-import com.starservice.inventory.inventory.entity.Purchase;
-import com.starservice.inventory.inventory.repository.PurchaseRepository;
+import com.starservice.inventory.inventory_app.dto.purchase.PurchaseRequestDTO;
+import com.starservice.inventory.inventory_app.dto.purchase.PurchaseResponseDTO;
+import com.starservice.inventory.inventory_app.entity.Purchase;
+import com.starservice.inventory.inventory_app.repository.PurchaseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

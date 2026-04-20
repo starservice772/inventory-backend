@@ -1,4 +1,4 @@
-package com.starservice.inventory.inventory.dto.common;
+package com.starservice.inventory.inventory_app.dto.common;
 
 import lombok.Builder;
 import lombok.Data;
