@@ -4,5 +4,5 @@ import com.starservice.inventory.inventory_app.dto.purchase.PurchaseRequestDTO;
 import com.starservice.inventory.inventory_app.dto.purchase.PurchaseResponseDTO;
 
 public interface PurchaseService {
-    PurchaseResponseDTO save(PurchaseRequestDTO request);
+    String save(PurchaseRequestDTO request);
 }

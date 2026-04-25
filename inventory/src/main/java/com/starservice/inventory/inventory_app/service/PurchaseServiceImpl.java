@@ -3,12 +3,15 @@ package com.starservice.inventory.inventory_app.service;
 import com.starservice.inventory.inventory_app.dto.purchase.PurchaseRequestDTO;
 import com.starservice.inventory.inventory_app.dto.purchase.PurchaseResponseDTO;
 import com.starservice.inventory.inventory_app.entity.Purchase;
+import com.starservice.inventory.inventory_app.entity.PurchaseItem;
+import com.starservice.inventory.inventory_app.repository.PurchaseItemRepository;
 import com.starservice.inventory.inventory_app.repository.PurchaseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -18,83 +21,61 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Autowired
     private PurchaseRepository purchaseRepository;
 
+    @Autowired
+    private final PurchaseItemRepository purchaseItemRepository;
+
     @Override
-    public PurchaseResponseDTO save(PurchaseRequestDTO request) {
+    @org.springframework.transaction.annotation.Transactional
+    public String save(PurchaseRequestDTO request) {
 
-        if (request.getCompanyName() == null || request.getCompanyName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Company name is required");
-        }
-
-        if (request.getItemCode() == null || request.getItemCode().trim().isEmpty()) {
-            throw new IllegalArgumentException("Item code is required");
-        }
-
-        if (request.getQuantity() == null || request.getQuantity().trim().isEmpty()) {
-            throw new IllegalArgumentException("Quantity is required");
-        }
-
-        if (request.getTotalPrice() == null || request.getTotalPrice().trim().isEmpty()) {
-            throw new IllegalArgumentException("Total price is required");
+        // Validation
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Item list cannot be empty");
         }
 
         try {
-            Double.parseDouble(request.getQuantity());
+            String purchaseId = UUID.randomUUID().toString();
+            Instant now = Instant.now();
+
+            // Save Header
+            Purchase purchase = Purchase.builder()
+                    .uuid(purchaseId)
+                    .companyName(request.getCompanyName())
+                    .gstNo(request.getGstNo())
+                    .invoiceNo(request.getInvoiceNo())
+                    .invoiceType(request.getInvoiceType())
+                    .gstPercentage(request.getGstPercentage())
+                    .invoiceDate(request.getInvoiceDate())
+                    .createdDate(now)
+                    .updatedDate(now)
+                    .build();
+
+            purchaseRepository.save(purchase);
+
+            // Save Items (Batch)
+            List<PurchaseItem> items = request.getItems().stream().map(item ->
+                    PurchaseItem.builder()
+                            .uuid(UUID.randomUUID().toString())
+                            .purchaseId(purchaseId)
+                            .itemCode(item.getItemCode())
+                            .itemDesc(item.getItemDesc())
+                            .hsnCode(item.getHsnCode())
+                            .rateDp(item.getRateDp())
+                            .quantity(item.getQuantity())
+                            .gstValue(item.getGstValue())
+                            .totalDp(item.getTotalDp())
+                            .totalPrice(item.getTotalPrice())
+                            .createdDate(now)
+                            .updatedDate(now)
+                            .build()
+            ).toList();
+
+            purchaseItemRepository.saveAll(items);
+
+            return "Purchase created successfully";
+
         } catch (Exception e) {
-            throw new IllegalArgumentException("Quantity must be a valid number");
+            throw new RuntimeException("Failed to create purchase: " + e.getMessage());
         }
-
-        try {
-            Double.parseDouble(request.getTotalPrice());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Total price must be a valid number");
-        }
-
-        // Map DTO → Entity
-        Purchase purchase = new Purchase();
-
-        purchase.setUuid(UUID.randomUUID().toString());
-        purchase.setCompanyName(request.getCompanyName());
-        purchase.setItemCode(request.getItemCode());
-        purchase.setItemDesc(request.getItemDesc());
-        purchase.setGstNo(request.getGstNo());
-        purchase.setInvoiceNo(request.getInvoiceNo());
-        purchase.setHsnCode(request.getHsnCode());
-        purchase.setRateDp(request.getRateDp());
-        purchase.setQuantity(request.getQuantity());
-        purchase.setGstPercentage(request.getGstPercentage());
-        purchase.setGstValue(request.getGstValue());
-        purchase.setTotalDp(request.getTotalDp());
-        purchase.setTotalPrice(request.getTotalPrice());
-
-        // Invoice date as String (as per your design)
-        purchase.setInvoiceDate(request.getInvoiceDate());
-
-        // System timestamps
-        purchase.setCreatedDate(Instant.now());
-        purchase.setUpdatedDate(Instant.now());
-
-        // Save
-        Purchase saved = purchaseRepository.save(purchase);
-
-        // Map Entity → Response DTO
-        return PurchaseResponseDTO.builder()
-                .uuid(saved.getUuid())
-                .companyName(saved.getCompanyName())
-                .itemCode(saved.getItemCode())
-                .itemDesc(saved.getItemDesc())
-                .gstNo(saved.getGstNo())
-                .invoiceNo(saved.getInvoiceNo())
-                .hsnCode(saved.getHsnCode())
-                .rateDp(saved.getRateDp())
-                .quantity(saved.getQuantity())
-                .gstPercentage(saved.getGstPercentage())
-                .gstValue(saved.getGstValue())
-                .totalDp(saved.getTotalDp())
-                .totalPrice(saved.getTotalPrice())
-                .invoiceDate(saved.getInvoiceDate())
-                .createdDate(String.valueOf(saved.getCreatedDate()))
-                .updatedDate(String.valueOf(saved.getUpdatedDate()))
-                .build();
     }
-
 }
