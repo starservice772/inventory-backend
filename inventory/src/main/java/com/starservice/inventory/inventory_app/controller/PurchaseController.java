@@ -25,19 +25,20 @@ public class PurchaseController {
     public ResponseEntity<ApiResponse<?>> savePurchase(@RequestBody PurchaseRequestDTO request) {
 
         try {
-            PurchaseResponseDTO response = purchaseService.save(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.builder()
-                    .success(true).message("Purchase saved successfully").data(response).build());
+            String message = purchaseService.save(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.builder().success(true)
+                    .message(message).data(null).build());
 
         } catch (IllegalArgumentException e) {
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.builder()
-                    .success(false).message(e.getMessage()).data(null).build());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponse.builder().success(false)
+                            .message(e.getMessage()).data(null).build());
 
         } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.builder()
-                    .success(false).message("Something went wrong").data(null).build());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    ApiResponse.builder().success(false)
+                            .message(e.getMessage()).data(null).build());
         }
     }
 }
