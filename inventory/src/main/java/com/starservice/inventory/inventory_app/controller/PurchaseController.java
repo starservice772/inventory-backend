@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/purchase")
+@RequestMapping("/purchase")
 @RequiredArgsConstructor
 public class PurchaseController {
 
