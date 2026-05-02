@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -28,15 +29,19 @@ public class SecurityConfig {
     @Autowired
     private SecurityProperties securityProperties;
 
+    @Autowired
+    private CorsConfigurationSource corsConfigurationSource;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         String[] permitAll = securityProperties.getPermitAll()
                 .stream()
-                .map(String::trim) // remove spaces if any
+                .map(String::trim)
                 .toArray(String[]::new);
 
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(permitAll).permitAll()
@@ -50,23 +55,23 @@ public class SecurityConfig {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
                             response.getWriter().write("""
-                    {
-                        "success": false,
-                        "message": "Unauthorized",
-                        "status": 401
-                    }
-                    """);
+                {
+                    "success": false,
+                    "message": "Unauthorized",
+                    "status": 401
+                }
+                """);
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
                             response.getWriter().write("""
-                    {
-                        "success": false,
-                        "message": "Forbidden",
-                        "status": 403
-                    }
-                    """);
+                {
+                    "success": false,
+                    "message": "Forbidden",
+                    "status": 403
+                }
+                """);
                         })
                 );
 
