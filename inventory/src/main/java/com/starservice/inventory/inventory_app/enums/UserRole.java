@@ -1,4 +1,4 @@
-package com.starservice.inventory.inventory_app.dto.auth;
+package com.starservice.inventory.inventory_app.enums;
 
 public enum UserRole {
     ROLE_ADMIN,

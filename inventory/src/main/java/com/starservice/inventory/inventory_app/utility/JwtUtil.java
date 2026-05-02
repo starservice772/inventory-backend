@@ -1,6 +1,6 @@
 package com.starservice.inventory.inventory_app.utility;
 
-import com.starservice.inventory.inventory_app.dto.auth.Company;
+import com.starservice.inventory.inventory_app.enums.Company;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

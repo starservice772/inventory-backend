@@ -1,7 +1,7 @@
 package com.starservice.inventory.inventory_app.entity;
 
-import com.starservice.inventory.inventory_app.dto.auth.Company;
-import com.starservice.inventory.inventory_app.dto.auth.UserRole;
+import com.starservice.inventory.inventory_app.enums.Company;
+import com.starservice.inventory.inventory_app.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"username", "company"})
+        })
 @Data
 @Builder
 @NoArgsConstructor
