@@ -63,11 +63,14 @@ public class UserService {
             throw new RuntimeException("Username already exists in this company");
         }
 
+        String customUserId = generateCustomUserId(request.getCompany());
+
         User user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .company(request.getCompany())
+                .customUserId(customUserId)
                 .name(request.getName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
@@ -83,6 +86,7 @@ public class UserService {
         return UserResponse.builder()
                 .uuid(user.getId())
                 .username(user.getUsername())
+                .userId(user.getCustomUserId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
@@ -94,51 +98,88 @@ public class UserService {
 
     // Extract company from JWT (better to move later to util)
     private Company getCompanyFromToken() {
+        return (Company) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getDetails();
+    }
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    private String generateCustomUserId(Company company) {
 
-        String username = auth.getName();
+        Optional<User> lastUserOpt = userRepository.findTopByCompanyOrderByCustomUserIdDesc(company);
 
-        // Minimal approach (since JWT already validated)
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        int nextNumber = 1;
 
-        return user.getCompany();
+        if (lastUserOpt.isPresent()) {
+
+            String lastId = lastUserOpt.get().getCustomUserId();
+
+            if (lastId != null && lastId.contains("-")) {
+
+                try {
+                    String[] parts = lastId.split("-");
+
+                    if (parts.length == 3) {
+                        int lastNumber = Integer.parseInt(parts[2]);
+                        nextNumber = lastNumber + 1;
+                    }
+
+                } catch (Exception e) {
+                    nextNumber = 1;
+                }
+            }
+        }
+
+        String companyCode = getCompanyCode(company);
+
+        return String.format("USER-%s-%02d", companyCode, nextNumber);
+    }
+
+    private String getCompanyCode(Company company) {
+
+        return switch (company) {
+            case GODREJ -> "GOD";
+            case AOSMITH -> "AOS";
+        };
     }
 
     public PageResponse<UserResponse> getUsers(int pageNo, int pageSize, String search) {
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth.getName();
 
-        User loggedInUser = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+            Company compName = getCompanyFromToken();
+            User loggedInUser = userRepository.findByUsernameAndCompany(username, compName).orElseThrow(() -> new RuntimeException("User not found"));
 
-        Company company = loggedInUser.getCompany();
+            Company company = loggedInUser.getCompany();
 
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-        Page<User> userPage;
+            Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+            Page<User> userPage;
 
-        if (search == null || search.isBlank()) {
-            userPage = userRepository.findByCompanyAndDelFlFalse(company, pageable);
-        } else {
-            userPage = userRepository.searchUsers(company, search, pageable);
-        }
+            if (search == null || search.isBlank()) {
+                userPage = userRepository.findByCompanyAndDelFlFalse(company, pageable);
+            } else {
+                userPage = userRepository.searchUsers(company, search, pageable);
+            }
 
-        List<UserResponse> users = userPage.getContent()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+            List<UserResponse> users = userPage.getContent()
+                    .stream()
+                    .map(this::mapToResponse)
+                    .toList();
 
-        return PageResponse.<UserResponse>builder()
-                .totalPages(userPage.getTotalPages())
-                .totalRecords(userPage.getTotalElements())
-                .response(users)
-                .build();
+            return PageResponse.<UserResponse>builder()
+                    .totalPages(userPage.getTotalPages())
+                    .totalRecords(userPage.getTotalElements())
+                    .response(users)
+                    .build();
+
     }
 
     private UserResponse mapToResponse(User user) {
         return UserResponse.builder()
                 .uuid(user.getId())
                 .username(user.getUsername())
+                .userId(user.getCustomUserId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
@@ -164,7 +205,7 @@ public class UserService {
         return mapToResponse(user);
     }
 
-    public String toggleUserStatus(String id) {
+    public UserResponse toggleUserStatus(String id) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
@@ -185,10 +226,10 @@ public class UserService {
 
         userRepository.save(user);
 
-        return user.getActiveFl() ? "User activated" : "User deactivated";
+        return mapToResponse(user);
     }
 
-    public String deleteUser(String id) {
+    public UserResponse deleteUser(String id) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
@@ -209,7 +250,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        return "User deleted successfully";
+        return mapToResponse(user);
     }
 
     public UserResponse updateUser(UpdateUserRequest request) {

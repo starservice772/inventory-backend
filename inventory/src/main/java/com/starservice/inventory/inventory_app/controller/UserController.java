@@ -65,13 +65,19 @@ public class UserController {
     }
 
     @PostMapping("/changeStatus")
-    public ResponseEntity<String> toggleStatus(@RequestParam String id) {
-        return ResponseEntity.ok(userService.toggleUserStatus(id));
+    public ResponseEntity<ApiResponse<?>> toggleStatus(@RequestParam String id) {
+        UserResponse response = userService.toggleUserStatus(id);
+        return ResponseEntity.ok(ApiResponse.builder()
+                        .data(response)
+                        .build());
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteUser(@RequestParam String id) {
-        return ResponseEntity.ok(userService.deleteUser(id));
+    public ResponseEntity<ApiResponse<?>> deleteUser(@RequestParam String id) {
+        UserResponse response = userService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponse.builder()
+                        .data(response)
+                        .build());
     }
 
     @PostMapping("/update")
