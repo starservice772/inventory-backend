@@ -1,6 +1,6 @@
 package com.starservice.inventory.inventory_app.service;
 
-import com.starservice.inventory.inventory_app.dto.auth.Company;
+import com.starservice.inventory.inventory_app.enums.Company;
 import com.starservice.inventory.inventory_app.entity.User;
 import com.starservice.inventory.inventory_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
