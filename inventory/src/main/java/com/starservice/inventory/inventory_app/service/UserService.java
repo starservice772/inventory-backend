@@ -144,7 +144,6 @@ public class UserService {
     }
 
     public PageResponse<UserResponse> getUsers(int pageNo, int pageSize, String search) {
-        try {
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String username = auth.getName();
@@ -173,10 +172,6 @@ public class UserService {
                     .totalRecords(userPage.getTotalElements())
                     .response(users)
                     .build();
-        }catch(Exception e){
-            e.printStackTrace();
-            return null;
-        }
 
     }
 
