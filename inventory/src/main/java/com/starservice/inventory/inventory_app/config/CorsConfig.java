@@ -14,47 +14,47 @@ import java.util.List;
 
 @Configuration
 public class CorsConfig {
-
-
-    @Value("${app.cors.allowed-origins}")
-    private String allowedOrigins;
-
-//    @Bean
-//    public WebMvcConfigurer corsConfigurer() {
-//        return new WebMvcConfigurer() {
-//            @Override
-//            public void addCorsMappings(CorsRegistry registry) {
-//                registry.addMapping("/**")
-//                        .allowedOrigins("*")
-//                        .allowedMethods("*")
-//                        .allowedHeaders("*")
-//                        .allowCredentials(false)
-//                        .maxAge(3600);
 //
-//            }
-//        };
+//
+//    @Value("${app.cors.allowed-origins}")
+//    private String allowedOrigins;
+//
+////    @Bean
+////    public WebMvcConfigurer corsConfigurer() {
+////        return new WebMvcConfigurer() {
+////            @Override
+////            public void addCorsMappings(CorsRegistry registry) {
+////                registry.addMapping("/**")
+////                        .allowedOrigins("*")
+////                        .allowedMethods("*")
+////                        .allowedHeaders("*")
+////                        .allowCredentials(false)
+////                        .maxAge(3600);
+////
+////            }
+////        };
+////    }
+//
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//
+//        CorsConfiguration config = new CorsConfiguration();
+//
+//        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+//                .map(String::trim)
+//                .toList();
+//
+//        config.setAllowedOrigins(origins);
+//
+//        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//
+//        config.setAllowedHeaders(List.of("*"));
+//
+//        config.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", config);
+//
+//        return source;
 //    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-
-        CorsConfiguration config = new CorsConfiguration();
-
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .toList();
-
-        config.setAllowedOrigins(origins);
-
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        config.setAllowedHeaders(List.of("*"));
-
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return source;
-    }
 }
