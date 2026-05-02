@@ -39,6 +39,9 @@ public class User {
     @Column(name = "role")
     private UserRole role;
 
+    @Column(name = "custom_user_id", unique = true)
+    private String customUserId;
+
     @Column(name = "name")
     private String name;
 

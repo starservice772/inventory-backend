@@ -21,6 +21,8 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Optional<User> findByIdAndCompanyAndDelFlFalse(String id, Company company);
 
+    Optional<User> findTopByCompanyOrderByCustomUserIdDesc(Company company);
+
     @Query("""
                 SELECT u FROM User u
                 WHERE u.company = :company
