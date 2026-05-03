@@ -1,6 +1,7 @@
 package com.starservice.inventory.inventory_app.controller;
 
 import com.starservice.inventory.inventory_app.dto.common.ApiResponse;
+import com.starservice.inventory.inventory_app.dto.common.PageResponse;
 import com.starservice.inventory.inventory_app.dto.employee.AddEmployeeRequest;
 import com.starservice.inventory.inventory_app.dto.employee.EmployeeResponse;
 import com.starservice.inventory.inventory_app.dto.employee.UpdateEmployeeRequest;
@@ -123,24 +124,13 @@ public class EmployeeController {
     }
 
     @GetMapping("/getAll/{pageNo}/{pageSize}")
-    public ResponseEntity<ApiResponse<?>> getAll(@PathVariable int pageNo,
-                                                 @PathVariable int pageSize,
-                                                 @RequestParam(required = false) String search) {
+    public ResponseEntity<PageResponse<EmployeeResponse>> getEmployees(
+            @PathVariable int pageNo,
+            @PathVariable int pageSize,
+            @RequestParam(required = false) String search) {
 
-        try {
-            return ResponseEntity.ok(ApiResponse.builder()
-                    .success(true)
-                    .message("Employee list fetched")
-                    .data(employeeService.getEmployees(pageNo, pageSize, search))
-                    .build());
+        PageResponse<EmployeeResponse> employees = employeeService.getEmployees(pageNo, pageSize, search);
 
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.builder()
-                            .success(false)
-                            .message(e.getMessage())
-                            .data(null)
-                            .build());
-        }
+        return ResponseEntity.ok(employees);
     }
 }
