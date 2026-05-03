@@ -48,6 +48,7 @@ public class AuthController {
         return AuthResponse.builder()
                 .token(token)
                 .username(user.getUsername())
+                .userId(user.getCustomUserId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
