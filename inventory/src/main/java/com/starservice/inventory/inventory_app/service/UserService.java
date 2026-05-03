@@ -195,7 +195,7 @@ public class UserService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
-        User loggedInUser = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        User loggedInUser = userRepository.findByUsernameAndCompany(username, getCompanyFromToken()).orElseThrow(() -> new RuntimeException("User not found"));
         Company company = loggedInUser.getCompany();
 
         // Fetch user by id + company + not deleted
@@ -210,7 +210,7 @@ public class UserService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
-        User loggedInUser = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        User loggedInUser = userRepository.findByUsernameAndCompany(username, getCompanyFromToken()).orElseThrow(() -> new RuntimeException("User not found"));
 
         // Only ADMIN
         if (!loggedInUser.getRole().name().equals("ROLE_ADMIN")) {
@@ -234,7 +234,7 @@ public class UserService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
-        User loggedInUser = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        User loggedInUser = userRepository.findByUsernameAndCompany(username, getCompanyFromToken()).orElseThrow(() -> new RuntimeException("User not found"));
 
         // Only ADMIN
         if (!loggedInUser.getRole().name().equals("ROLE_ADMIN")) {
@@ -258,7 +258,7 @@ public class UserService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
-        User loggedInUser = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        User loggedInUser = userRepository.findByUsernameAndCompany(username, getCompanyFromToken()).orElseThrow(() -> new RuntimeException("User not found"));
 
         // Only ADMIN
         if (!loggedInUser.getRole().name().equals("ROLE_ADMIN")) {
