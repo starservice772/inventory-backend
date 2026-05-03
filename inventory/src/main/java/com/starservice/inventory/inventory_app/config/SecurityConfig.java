@@ -57,23 +57,23 @@ public class SecurityConfig {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
                             response.getWriter().write("""
-                {
-                    "success": false,
-                    "message": "Unauthorized",
-                    "status": 401
-                }
-                """);
+                    {
+                        "success": false,
+                        "message": "Unauthorized - Invalid or Missing Token",
+                        "status": 401
+                    }
+                    """);
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
                             response.getWriter().write("""
-                {
-                    "success": false,
-                    "message": "Forbidden",
-                    "status": 403
-                }
-                """);
+                    {
+                        "success": false,
+                        "message": "Forbidden - Access Denied",
+                        "status": 403
+                    }
+                    """);
                         })
                 );
 
