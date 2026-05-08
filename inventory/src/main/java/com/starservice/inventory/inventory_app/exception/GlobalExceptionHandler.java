@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -16,6 +17,19 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.builder()
                         .success(false)
                         .message("Method not allowed")
+                        .data(null)
+                        .build());
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiResponse<?>> handleResponseStatusException(ResponseStatusException e) {
+
+        String message = e.getReason() != null ? e.getReason() : e.getMessage();
+
+        return ResponseEntity.status(e.getStatusCode())
+                .body(ApiResponse.builder()
+                        .success(false)
+                        .message(message)
                         .data(null)
                         .build());
     }
