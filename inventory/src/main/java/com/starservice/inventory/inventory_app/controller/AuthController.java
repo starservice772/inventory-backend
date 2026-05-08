@@ -7,10 +7,12 @@ import com.starservice.inventory.inventory_app.repository.UserRepository;
 import com.starservice.inventory.inventory_app.service.CustomUserDetailsService;
 import com.starservice.inventory.inventory_app.utility.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/auth")
@@ -37,6 +39,11 @@ public class AuthController {
         User user = userRepository
                 .findByUsernameAndCompany(request.getUsername(), request.getCompany())
                 .orElseThrow(() -> new RuntimeException("Invalid username or company"));
+
+        if (Boolean.FALSE.equals(user.getActiveFl())) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Your account has been deactivated. Please contact admin.");
+        }
 
         // manual password check
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {

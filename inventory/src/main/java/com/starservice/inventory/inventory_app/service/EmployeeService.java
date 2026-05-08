@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -72,6 +74,10 @@ public class EmployeeService {
     }
 
     private EmployeeResponse mapToResponse(Employee e) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm a")
+                .withZone(ZoneId.of("Asia/Kolkata"));
+
         return EmployeeResponse.builder()
                 .id(e.getId())
                 .name(e.getName())
@@ -81,6 +87,8 @@ public class EmployeeService {
                 .gender(e.getGender())
                 .company(e.getCompany())
                 .status(Boolean.TRUE.equals(e.getActiveFl()) ? "ACTIVE" : "INACTIVE")
+                .createdDate(e.getCreatedDate() != null ? formatter.format(e.getCreatedDate()) : null)
+                .updatedDate(e.getUpdatedDate() != null ? formatter.format(e.getUpdatedDate()) : null)
                 .build();
     }
 
@@ -123,6 +131,10 @@ public class EmployeeService {
                 }
 
                 emp.setGender(gender);
+            }
+
+            if(request.getRole() != null){
+                emp.setRole(request.getRole());
             }
 
             emp.setUpdatedDate(Instant.now());
