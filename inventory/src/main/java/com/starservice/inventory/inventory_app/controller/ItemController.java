@@ -160,7 +160,7 @@ public class ItemController {
         return ResponseEntity.ok(items);
     }
 
-    @GetMapping("/item/search")
+    @GetMapping("/item/search/byItemCode")
     public ResponseEntity<ApiResponse<?>> searchByItemCode(@RequestParam String itemCode) {
 
         try {
