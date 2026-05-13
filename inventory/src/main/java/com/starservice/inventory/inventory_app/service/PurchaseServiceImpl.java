@@ -4,6 +4,7 @@ import com.starservice.inventory.inventory_app.dto.purchase.PurchaseRequestDTO;
 import com.starservice.inventory.inventory_app.dto.purchase.PurchaseResponseDTO;
 import com.starservice.inventory.inventory_app.entity.Purchase;
 import com.starservice.inventory.inventory_app.entity.PurchaseItem;
+import com.starservice.inventory.inventory_app.enums.Company;
 import com.starservice.inventory.inventory_app.repository.PurchaseItemRepository;
 import com.starservice.inventory.inventory_app.repository.PurchaseRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         try {
             String purchaseId = UUID.randomUUID().toString();
             Instant now = Instant.now();
+            Company defaultCompany = getCompanyFromToken();
+
 
             // Save Header
             Purchase purchase = Purchase.builder()
@@ -46,6 +49,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                     .invoiceType(request.getInvoiceType())
                     .gstPercentage(request.getGstPercentage())
                     .invoiceDate(request.getInvoiceDate())
+                    .defaultCompany(defaultCompany)
                     .createdDate(now)
                     .updatedDate(now)
                     .build();
@@ -77,5 +81,12 @@ public class PurchaseServiceImpl implements PurchaseService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to create purchase: " + e.getMessage());
         }
+    }
+
+    private Company getCompanyFromToken() {
+        return (Company) org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getDetails();
     }
 }

@@ -1,9 +1,7 @@
 package com.starservice.inventory.inventory_app.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.starservice.inventory.inventory_app.enums.Company;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,4 +44,8 @@ public class Purchase {
 
     @Column(name = "updt_date")
     private Instant updatedDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "default_company")
+    private Company defaultCompany;
 }
