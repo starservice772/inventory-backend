@@ -181,4 +181,23 @@ public class ItemController {
         }
     }
 
+    @PostMapping("/item/delete")
+    public ResponseEntity<ApiResponse<?>> delete(@RequestParam String id) {
+
+        try {
+            return ResponseEntity.ok(ApiResponse.builder()
+                    .success(true)
+                    .message(itemService.deleteItem(id))
+                    .data(null)
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .data(null)
+                            .build());
+        }
+    }
+
 }

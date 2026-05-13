@@ -5,6 +5,7 @@ import com.starservice.inventory.inventory_app.dto.item.AddItemRequest;
 import com.starservice.inventory.inventory_app.dto.item.ItemResponse;
 import com.starservice.inventory.inventory_app.dto.item.ItemSearchResponse;
 import com.starservice.inventory.inventory_app.dto.item.UpdateItemRequest;
+import com.starservice.inventory.inventory_app.entity.Employee;
 import com.starservice.inventory.inventory_app.entity.Item;
 import com.starservice.inventory.inventory_app.enums.Company;
 import com.starservice.inventory.inventory_app.repository.ItemRepository;
@@ -232,5 +233,18 @@ public class ItemService {
                         .itemDescription(item.getItemDescription())
                         .build())
                 .toList();
+    }
+
+    public String deleteItem(String id) {
+
+        Company company = getCompanyFromToken();
+        Item item = itemRepository.findByIdAndCompanyAndDelFlFalse(id, company)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        item.setDelFl(true);
+        item.setUpdtDt(Instant.now());
+        itemRepository.save(item);
+
+        return "Item deleted successfully";
     }
 }
