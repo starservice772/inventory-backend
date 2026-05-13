@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/purchase")
+//@RequestMapping("/purchase")
 @RequiredArgsConstructor
 public class PurchaseController {
 
     @Autowired
     private PurchaseService purchaseService;
 
-    @PostMapping("/save")
+    @PostMapping("/purchase/save")
     public ResponseEntity<ApiResponse<?>> savePurchase(@RequestBody PurchaseRequestDTO request) {
 
         try {

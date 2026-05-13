@@ -14,14 +14,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/users")
+//@RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @PostMapping("/save")
+    @PostMapping("/users/save")
     public ResponseEntity<ApiResponse<?>> addUser(@RequestBody AddUserRequest request) {
 
         try {
@@ -48,7 +48,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/getAll/{pageNo}/{pageSize}")
+    @GetMapping("/users/getAll/{pageNo}/{pageSize}")
     public ResponseEntity<PageResponse<UserResponse>> getUsers(
             @PathVariable int pageNo,
             @PathVariable int pageSize,
@@ -58,13 +58,13 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/getById")
+    @GetMapping("/users/getById")
     public ResponseEntity<UserResponse> getUserById(@RequestParam String id) {
         UserResponse user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/changeStatus")
+    @PostMapping("/users/changeStatus")
     public ResponseEntity<ApiResponse<?>> toggleStatus(@RequestParam String id) {
         UserResponse response = userService.toggleUserStatus(id);
         return ResponseEntity.ok(ApiResponse.builder()
@@ -72,7 +72,7 @@ public class UserController {
                         .build());
     }
 
-    @PostMapping("/delete")
+    @PostMapping("/users/delete")
     public ResponseEntity<ApiResponse<?>> deleteUser(@RequestParam String id) {
         UserResponse response = userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.builder()
@@ -80,7 +80,7 @@ public class UserController {
                         .build());
     }
 
-    @PostMapping("/update")
+    @PostMapping("/users/update")
     public ResponseEntity<ApiResponse<?>> updateUser(@RequestBody UpdateUserRequest request) {
 
         try {

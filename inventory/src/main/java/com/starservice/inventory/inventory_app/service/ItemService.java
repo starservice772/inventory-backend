@@ -1,7 +1,9 @@
 package com.starservice.inventory.inventory_app.service;
 
+import com.starservice.inventory.inventory_app.dto.common.PageResponse;
 import com.starservice.inventory.inventory_app.dto.item.AddItemRequest;
 import com.starservice.inventory.inventory_app.dto.item.ItemResponse;
+import com.starservice.inventory.inventory_app.dto.item.ItemSearchResponse;
 import com.starservice.inventory.inventory_app.dto.item.UpdateItemRequest;
 import com.starservice.inventory.inventory_app.entity.Item;
 import com.starservice.inventory.inventory_app.enums.Company;
@@ -9,6 +11,10 @@ import com.starservice.inventory.inventory_app.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -190,5 +196,41 @@ public class ItemService {
             e.printStackTrace();
             throw new RuntimeException("Failed to upload excel");
         }
+    }
+
+    public PageResponse<ItemResponse> getItems(int pageNo, int pageSize, String search) {
+        Company company = getCompanyFromToken();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("crtdDt").descending());
+        Page<Item> itemPage;
+        if (search == null || search.isBlank()) {
+            itemPage = itemRepository.findByCompanyAndDelFlFalse(company, pageable);
+        } else {
+            itemPage = itemRepository.searchItems(company, search, pageable);
+        }
+
+        List<ItemResponse> items = itemPage.getContent()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+
+        return PageResponse.<ItemResponse>builder()
+                .totalPages(itemPage.getTotalPages())
+                .totalRecords(itemPage.getTotalElements())
+                .response(items)
+                .build();
+    }
+
+    public List<ItemSearchResponse> searchByItemCode(String itemCode) {
+
+        Company company = getCompanyFromToken();
+
+        List<Item> items = itemRepository.searchByItemCode(company, itemCode);
+
+        return items.stream()
+                .map(item -> ItemSearchResponse.builder()
+                        .itemCode(item.getItemCode())
+                        .itemDescription(item.getItemDescription())
+                        .build())
+                .toList();
     }
 }

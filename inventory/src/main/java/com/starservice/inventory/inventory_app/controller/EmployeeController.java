@@ -13,14 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/employee")
+//@RequestMapping("/employee")
 @RequiredArgsConstructor
 public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
 
-    @PostMapping("/save")
+    @PostMapping("/employee/save")
     public ResponseEntity<ApiResponse<?>> createEmployee(@RequestBody AddEmployeeRequest request) {
 
         try{
@@ -47,7 +47,7 @@ public class EmployeeController {
 
     }
 
-    @GetMapping("getById")
+    @GetMapping("/employee/getById")
     public ResponseEntity<ApiResponse<?>> getById(@RequestParam String id) {
 
         try {
@@ -66,7 +66,7 @@ public class EmployeeController {
         }
     }
 
-    @PutMapping("/update")
+    @PutMapping("/employee/update")
     public ResponseEntity<ApiResponse<?>> update(@RequestBody UpdateEmployeeRequest request) {
 
         try {
@@ -85,7 +85,7 @@ public class EmployeeController {
         }
     }
 
-    @PostMapping("/delete")
+    @PostMapping("/employee/delete")
     public ResponseEntity<ApiResponse<?>> delete(@RequestParam String id) {
 
         try {
@@ -104,7 +104,7 @@ public class EmployeeController {
         }
     }
 
-    @PostMapping("/changeStatus")
+    @PostMapping("/employee/changeStatus")
     public ResponseEntity<ApiResponse<?>> toggle(@RequestParam String id) {
 
         try {
@@ -123,7 +123,7 @@ public class EmployeeController {
         }
     }
 
-    @GetMapping("/getAll/{pageNo}/{pageSize}")
+    @GetMapping("/employee/getAll/{pageNo}/{pageSize}")
     public ResponseEntity<PageResponse<EmployeeResponse>> getEmployees(
             @PathVariable int pageNo,
             @PathVariable int pageSize,

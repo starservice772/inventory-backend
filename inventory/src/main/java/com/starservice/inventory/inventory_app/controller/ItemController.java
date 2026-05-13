@@ -1,6 +1,7 @@
 package com.starservice.inventory.inventory_app.controller;
 
 import com.starservice.inventory.inventory_app.dto.common.ApiResponse;
+import com.starservice.inventory.inventory_app.dto.common.PageResponse;
 import com.starservice.inventory.inventory_app.dto.item.AddItemRequest;
 import com.starservice.inventory.inventory_app.dto.item.ItemResponse;
 import com.starservice.inventory.inventory_app.dto.item.UpdateItemRequest;
@@ -20,8 +21,7 @@ public class ItemController {
     private ItemService itemService;
 
     @PostMapping("/item/save")
-    public ResponseEntity<ApiResponse<?>> saveItem(
-            @RequestBody AddItemRequest request) {
+    public ResponseEntity<ApiResponse<?>> saveItem(@RequestBody AddItemRequest request) {
 
         try {
 
@@ -35,7 +35,6 @@ public class ItemController {
                             .build());
 
         } catch (IllegalArgumentException e) {
-
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.builder()
                             .success(false)
@@ -44,7 +43,6 @@ public class ItemController {
                             .build());
 
         } catch (Exception e) {
-
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.builder()
                             .success(false)
@@ -152,4 +150,35 @@ public class ItemController {
                             .build());
         }
     }
+
+    @GetMapping("/item/getAll/{pageNo}/{pageSize}")
+    public ResponseEntity<PageResponse<ItemResponse>> getItems(
+            @PathVariable int pageNo,
+            @PathVariable int pageSize,
+            @RequestParam(required = false) String search) {
+        PageResponse<ItemResponse> items = itemService.getItems(pageNo, pageSize, search);
+        return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/item/search")
+    public ResponseEntity<ApiResponse<?>> searchByItemCode(@RequestParam String itemCode) {
+
+        try {
+            return ResponseEntity.ok(
+                    ApiResponse.builder()
+                            .success(true)
+                            .message("Items fetched")
+                            .data(itemService.searchByItemCode(itemCode))
+                            .build());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .data(null)
+                            .build());
+        }
+    }
+
 }
