@@ -25,6 +25,9 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Autowired
     private final PurchaseItemRepository purchaseItemRepository;
 
+    @Autowired
+    private final OfficeStockService officeStockService;
+
     @Override
     @org.springframework.transaction.annotation.Transactional
     public String save(PurchaseRequestDTO request) {
@@ -75,6 +78,8 @@ public class PurchaseServiceImpl implements PurchaseService {
             ).toList();
 
             purchaseItemRepository.saveAll(items);
+
+            officeStockService.addStockFromPurchaseItems(items, defaultCompany);
 
             return "Purchase created successfully";
 
