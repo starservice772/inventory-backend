@@ -5,6 +5,7 @@ import com.starservice.inventory.inventory_app.enums.Company;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -12,4 +13,6 @@ public interface EmployeeStockRepository extends JpaRepository<EmployeeStock, St
 
     Optional<EmployeeStock> findByItemCodeAndEmployeeIdAndDefaultCompany(
             String itemCode, String employeeId, Company defaultCompany);
+
+    List<EmployeeStock> findByItemCodeAndDefaultCompany(String itemCode, Company defaultCompany);
 }
