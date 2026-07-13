@@ -22,7 +22,7 @@ public class StockController {
     public ResponseEntity<ApiResponse<?>> transferToEmployee(@RequestBody StockTransferRequest request) {
 
         try {
-            String message = stockTransferService.transferToEmployee(request);
+            String message = stockTransferService.transferStock(request);
             return ResponseEntity.ok(ApiResponse.builder()
                     .success(true)
                     .message(message)
