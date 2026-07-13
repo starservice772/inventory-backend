@@ -2,6 +2,7 @@ package com.starservice.inventory.inventory_app.service;
 
 import com.starservice.inventory.inventory_app.dto.common.PageResponse;
 import com.starservice.inventory.inventory_app.dto.employee.AddEmployeeRequest;
+import com.starservice.inventory.inventory_app.dto.employee.EmployeeListResponse;
 import com.starservice.inventory.inventory_app.dto.employee.EmployeeResponse;
 import com.starservice.inventory.inventory_app.dto.employee.UpdateEmployeeRequest;
 import com.starservice.inventory.inventory_app.entity.Employee;
@@ -200,5 +201,24 @@ public class EmployeeService {
                 .totalRecords(employeePage.getTotalElements())
                 .response(employees)
                 .build();
+    }
+
+    public List<EmployeeListResponse> getEmployeeList(String search) {
+
+        Company company = getCompanyFromToken();
+
+        List<Employee> employees;
+        if (search == null || search.isBlank()) {
+            employees = employeeRepository.findByCompanyAndDelFlFalseAndActiveFlTrueOrderByNameAsc(company);
+        } else {
+            employees = employeeRepository.searchEmployeesByName(company, search.trim());
+        }
+
+        return employees.stream()
+                .map(employee -> EmployeeListResponse.builder()
+                        .empId(employee.getId())
+                        .empName(employee.getName())
+                        .build())
+                .toList();
     }
 }

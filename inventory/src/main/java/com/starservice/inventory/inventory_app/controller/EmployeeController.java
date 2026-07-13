@@ -3,6 +3,7 @@ package com.starservice.inventory.inventory_app.controller;
 import com.starservice.inventory.inventory_app.dto.common.ApiResponse;
 import com.starservice.inventory.inventory_app.dto.common.PageResponse;
 import com.starservice.inventory.inventory_app.dto.employee.AddEmployeeRequest;
+import com.starservice.inventory.inventory_app.dto.employee.EmployeeListResponse;
 import com.starservice.inventory.inventory_app.dto.employee.EmployeeResponse;
 import com.starservice.inventory.inventory_app.dto.employee.UpdateEmployeeRequest;
 import com.starservice.inventory.inventory_app.service.EmployeeService;
@@ -132,5 +133,25 @@ public class EmployeeController {
         PageResponse<EmployeeResponse> employees = employeeService.getEmployees(pageNo, pageSize, search);
 
         return ResponseEntity.ok(employees);
+    }
+
+    @GetMapping("/employee/list")
+    public ResponseEntity<ApiResponse<?>> getEmployeeList(
+            @RequestParam(required = false) String search) {
+
+        try {
+            return ResponseEntity.ok(ApiResponse.builder()
+                    .success(true)
+                    .message("Employees fetched successfully")
+                    .data(employeeService.getEmployeeList(search))
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .data(null)
+                            .build());
+        }
     }
 }

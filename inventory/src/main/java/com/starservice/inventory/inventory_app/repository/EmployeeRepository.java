@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, String> {
@@ -31,4 +32,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, String> {
             """)
     Page<Employee> searchEmployees(@Param("company") Company company,
             @Param("searchKey") String searchKey, Pageable pageable);
+
+    List<Employee> findByCompanyAndDelFlFalseAndActiveFlTrueOrderByNameAsc(Company company);
+
+    @Query("""
+                SELECT e FROM Employee e
+                WHERE e.company = :company
+                AND e.delFl = false
+                AND e.activeFl = true
+                AND LOWER(e.name) LIKE LOWER(CONCAT('%', :searchKey, '%'))
+                ORDER BY e.name ASC
+            """)
+    List<Employee> searchEmployeesByName(@Param("company") Company company,
+            @Param("searchKey") String searchKey);
 }
