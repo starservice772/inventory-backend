@@ -28,6 +28,9 @@ public class Item {
     @Column(name = "item_description")
     private String itemDescription;
 
+    @Column(name = "hsn_code")
+    private String hsnCode;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "company")
     private Company company;

@@ -10,4 +10,6 @@ public class ItemSearchResponse {
     private String itemCode;
 
     private String itemDescription;
+
+    private String hsnCode;
 }

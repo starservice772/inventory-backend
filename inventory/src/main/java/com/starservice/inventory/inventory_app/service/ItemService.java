@@ -5,7 +5,6 @@ import com.starservice.inventory.inventory_app.dto.item.AddItemRequest;
 import com.starservice.inventory.inventory_app.dto.item.ItemResponse;
 import com.starservice.inventory.inventory_app.dto.item.ItemSearchResponse;
 import com.starservice.inventory.inventory_app.dto.item.UpdateItemRequest;
-import com.starservice.inventory.inventory_app.entity.Employee;
 import com.starservice.inventory.inventory_app.entity.Item;
 import com.starservice.inventory.inventory_app.enums.Company;
 import com.starservice.inventory.inventory_app.repository.ItemRepository;
@@ -48,6 +47,7 @@ public class ItemService {
         Item item = Item.builder()
                 .itemCode(request.getItemCode())
                 .itemDescription(request.getItemDescription())
+                .hsnCode(request.getHsnCode())
                 .company(company)
                 .activeFl(true)
                 .delFl(false)
@@ -68,6 +68,7 @@ public class ItemService {
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
         item.setItemDescription(request.getItemDescription());
+        item.setHsnCode(request.getHsnCode());
         item.setUpdtDt(Instant.now());
 
         itemRepository.save(item);
@@ -85,6 +86,7 @@ public class ItemService {
                 .id(item.getId())
                 .itemCode(item.getItemCode())
                 .itemDescription(item.getItemDescription())
+                .hsnCode(item.getHsnCode())
                 .status(Boolean.TRUE.equals(item.getActiveFl()) ? "ACTIVE" : "INACTIVE")
                 .createdDate(item.getCrtdDt() != null ? formatter.format(item.getCrtdDt()) : null)
                 .updatedDate(item.getUpdtDt() != null ? formatter.format(item.getUpdtDt()) : null)
@@ -136,6 +138,8 @@ public class ItemService {
             // Prevent duplicate inside same excel
             Set<String> excelCodes = new HashSet<>();
 
+            DataFormatter formatter = new DataFormatter();
+
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
                 Row row = sheet.getRow(i);
@@ -146,13 +150,18 @@ public class ItemService {
 
                 Cell itemCodeCell = row.getCell(0);
                 Cell itemDescriptionCell = row.getCell(1);
+                Cell hsnCodeCell = row.getCell(2);
 
                 String itemCode = itemCodeCell != null
-                        ? itemCodeCell.toString().trim()
+                        ? formatter.formatCellValue(itemCodeCell).trim()
                         : null;
 
                 String itemDescription = itemDescriptionCell != null
-                        ? itemDescriptionCell.toString().trim()
+                        ? formatter.formatCellValue(itemDescriptionCell).trim()
+                        : null;
+
+                String hsnCode = hsnCodeCell != null
+                        ? formatter.formatCellValue(hsnCodeCell).trim()
                         : null;
 
                 if (itemCode == null || itemCode.isBlank()) {
@@ -174,6 +183,7 @@ public class ItemService {
                 Item item = Item.builder()
                         .itemCode(itemCode)
                         .itemDescription(itemDescription)
+                        .hsnCode(hsnCode)
                         .company(company)
                         .activeFl(true)
                         .delFl(false)
@@ -231,6 +241,7 @@ public class ItemService {
                 .map(item -> ItemSearchResponse.builder()
                         .itemCode(item.getItemCode())
                         .itemDescription(item.getItemDescription())
+                        .hsnCode(item.getHsnCode())
                         .build())
                 .toList();
     }

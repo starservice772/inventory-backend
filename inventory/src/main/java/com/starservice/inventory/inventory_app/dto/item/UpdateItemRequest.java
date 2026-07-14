@@ -8,4 +8,5 @@ public class UpdateItemRequest {
     private String id;
     private String itemCode;
     private String itemDescription;
+    private String hsnCode;
 }
