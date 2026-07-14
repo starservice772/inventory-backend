@@ -13,6 +13,8 @@ public class ItemResponse {
 
     private String itemDescription;
 
+    private String hsnCode;
+
     private String status;
 
     private String createdDate;
