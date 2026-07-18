@@ -52,4 +52,15 @@ public interface ItemRepository extends JpaRepository<Item, String> {
         ORDER BY i.itemCode ASC
         """)
     List<Item> searchByItemCode(@Param("company") Company company, @Param("itemCode") String itemCode);
+
+    @Query("""
+        SELECT i
+        FROM Item i
+        WHERE i.company = :company
+        AND i.delFl = false
+        AND i.itemCode IN :itemCodes
+        """)
+    List<Item> findByItemCodeInAndCompanyAndDelFlFalse(
+            @Param("itemCodes") List<String> itemCodes,
+            @Param("company") Company company);
 }
