@@ -2,11 +2,13 @@ package com.starservice.inventory.inventory_app.service;
 
 import com.starservice.inventory.inventory_app.dto.stock.StockTransferItemDTO;
 import com.starservice.inventory.inventory_app.dto.stock.StockTransferRequest;
+import com.starservice.inventory.inventory_app.entity.DefectiveStock;
 import com.starservice.inventory.inventory_app.entity.EmployeeStock;
 import com.starservice.inventory.inventory_app.entity.OfficeStock;
 import com.starservice.inventory.inventory_app.entity.StockTransferHistory;
 import com.starservice.inventory.inventory_app.enums.Company;
 import com.starservice.inventory.inventory_app.enums.StockTransferType;
+import com.starservice.inventory.inventory_app.repository.DefectiveStockRepository;
 import com.starservice.inventory.inventory_app.repository.EmployeeRepository;
 import com.starservice.inventory.inventory_app.repository.EmployeeStockRepository;
 import com.starservice.inventory.inventory_app.repository.OfficeStockRepository;
@@ -35,6 +37,9 @@ public class StockTransferService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    @Autowired
+    private DefectiveStockRepository defectiveStockRepository;
+
     @Transactional
     public String transferStock(StockTransferRequest request) {
         validateRequest(request);
@@ -52,8 +57,7 @@ public class StockTransferService {
             switch (item.getType()) {
                 case ISSUE -> issueToEmployee(request, item, quantity, company);
                 case RETURN -> returnToOffice(request, item, quantity, company);
-                case DEFECTIVE_RETURN -> throw new IllegalArgumentException(
-                        "Defective return is not implemented yet");
+                case DEFECTIVE_RETURN -> returnDefectiveToStock(request, item, quantity, company);
             }
 
             saveTransferHistory(request.getEmpId(), item.getType(), item.getItemCode(), quantity, company);
@@ -86,6 +90,36 @@ public class StockTransferService {
                 .ifPresentOrElse(
                         employeeStock -> addToEmployeeStock(employeeStock, item, quantity),
                         () -> createEmployeeStock(request, item, quantity, company, officeStock.getItemDesc())
+                );
+    }
+
+    private void returnDefectiveToStock(
+            StockTransferRequest request,
+            StockTransferItemDTO item,
+            int quantity,
+            Company company) {
+
+        EmployeeStock employeeStock = employeeStockRepository
+                .findByItemCodeAndEmployeeIdAndDefaultCompany(item.getItemCode(), request.getEmpId(), company)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Item not found in employee stock: " + item.getItemCode()));
+
+        if (employeeStock.getQuantity() < quantity) {
+            throw new IllegalArgumentException(
+                    "Insufficient employee stock for item: " + item.getItemCode());
+        }
+
+        employeeStock.setQuantity(employeeStock.getQuantity() - quantity);
+        if (item.getItemDesc() != null && !item.getItemDesc().isBlank()) {
+            employeeStock.setItemDesc(item.getItemDesc());
+        }
+        employeeStockRepository.save(employeeStock);
+
+        defectiveStockRepository
+                .findByItemCodeAndDefaultCompany(item.getItemCode(), company)
+                .ifPresentOrElse(
+                        defectiveStock -> addToDefectiveStock(defectiveStock, item, quantity),
+                        () -> createDefectiveStock(item, quantity, company, employeeStock.getItemDesc())
                 );
     }
 
@@ -125,6 +159,35 @@ public class StockTransferService {
             employeeStock.setItemDesc(item.getItemDesc());
         }
         employeeStockRepository.save(employeeStock);
+    }
+
+    private void addToDefectiveStock(DefectiveStock defectiveStock, StockTransferItemDTO item, int quantity) {
+        defectiveStock.setQuantity(defectiveStock.getQuantity() + quantity);
+        if (item.getItemDesc() != null && !item.getItemDesc().isBlank()) {
+            defectiveStock.setItemDesc(item.getItemDesc());
+        }
+        defectiveStockRepository.save(defectiveStock);
+    }
+
+    private void createDefectiveStock(
+            StockTransferItemDTO item,
+            int quantity,
+            Company company,
+            String employeeItemDesc) {
+
+        String itemDesc = item.getItemDesc() != null && !item.getItemDesc().isBlank()
+                ? item.getItemDesc()
+                : employeeItemDesc;
+
+        DefectiveStock defectiveStock = DefectiveStock.builder()
+                .uuid(UUID.randomUUID().toString())
+                .itemCode(item.getItemCode())
+                .itemDesc(itemDesc)
+                .quantity(quantity)
+                .defaultCompany(company)
+                .build();
+
+        defectiveStockRepository.save(defectiveStock);
     }
 
     private void addToOfficeStock(OfficeStock officeStock, StockTransferItemDTO item, int quantity) {
