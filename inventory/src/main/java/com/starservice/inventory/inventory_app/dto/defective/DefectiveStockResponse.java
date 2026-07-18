@@ -10,5 +10,6 @@ public class DefectiveStockResponse {
     private String uuid;
     private String itemCode;
     private String itemDesc;
+    private String hsnCode;
     private Integer quantity;
 }

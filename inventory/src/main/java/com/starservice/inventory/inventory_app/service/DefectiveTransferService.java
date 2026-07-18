@@ -9,6 +9,7 @@ import com.starservice.inventory.inventory_app.entity.DefectiveTransferCompanyHi
 import com.starservice.inventory.inventory_app.enums.Company;
 import com.starservice.inventory.inventory_app.repository.DefectiveStockRepository;
 import com.starservice.inventory.inventory_app.repository.DefectiveTransferCompanyHistoryRepository;
+import com.starservice.inventory.inventory_app.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,9 @@ public class DefectiveTransferService {
 
     @Autowired
     private DefectiveTransferCompanyHistoryRepository defectiveTransferCompanyHistoryRepository;
+
+    @Autowired
+    private ItemRepository itemRepository;
 
     @Transactional
     public String transferDefectiveToCompany(DefectiveTransferToCompanyRequest request) {
@@ -76,12 +80,12 @@ public class DefectiveTransferService {
                     .findByDefaultCompanyAndQuantityGreaterThan(company, 0, pageable);
         } else {
             defectiveStockPage = defectiveStockRepository
-                    .searchDefectiveStocks(company, searchKey.trim(), pageable);
+                    .searchDefectiveStocksByItemCode(company, searchKey.trim(), pageable);
         }
 
         List<DefectiveStockResponse> defectiveStocks = defectiveStockPage.getContent()
                 .stream()
-                .map(this::mapToResponse)
+                .map(defectiveStock -> mapToResponse(defectiveStock, company))
                 .toList();
 
         return PageResponse.<DefectiveStockResponse>builder()
@@ -91,11 +95,17 @@ public class DefectiveTransferService {
                 .build();
     }
 
-    private DefectiveStockResponse mapToResponse(DefectiveStock defectiveStock) {
+    private DefectiveStockResponse mapToResponse(DefectiveStock defectiveStock, Company company) {
+        String hsnCode = itemRepository
+                .findByItemCodeAndCompanyAndDelFlFalse(defectiveStock.getItemCode(), company)
+                .map(item -> item.getHsnCode())
+                .orElse(null);
+
         return DefectiveStockResponse.builder()
                 .uuid(defectiveStock.getUuid())
                 .itemCode(defectiveStock.getItemCode())
                 .itemDesc(defectiveStock.getItemDesc())
+                .hsnCode(hsnCode)
                 .quantity(defectiveStock.getQuantity())
                 .build();
     }

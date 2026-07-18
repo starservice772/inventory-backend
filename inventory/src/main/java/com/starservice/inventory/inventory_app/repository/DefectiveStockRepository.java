@@ -23,13 +23,10 @@ public interface DefectiveStockRepository extends JpaRepository<DefectiveStock, 
                 SELECT d FROM DefectiveStock d
                 WHERE d.defaultCompany = :company
                 AND d.quantity > 0
-                AND (
-                    LOWER(d.itemCode) LIKE LOWER(CONCAT('%', :searchKey, '%'))
-                    OR LOWER(d.itemDesc) LIKE LOWER(CONCAT('%', :searchKey, '%'))
-                )
+                AND LOWER(d.itemCode) LIKE LOWER(CONCAT('%', :itemCode, '%'))
             """)
-    Page<DefectiveStock> searchDefectiveStocks(
+    Page<DefectiveStock> searchDefectiveStocksByItemCode(
             @Param("company") Company company,
-            @Param("searchKey") String searchKey,
+            @Param("itemCode") String itemCode,
             Pageable pageable);
 }
