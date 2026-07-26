@@ -3,10 +3,14 @@ package com.starservice.inventory.inventory_app.service;
 import com.starservice.inventory.inventory_app.entity.DefectiveStock;
 import com.starservice.inventory.inventory_app.entity.EmployeeStock;
 import com.starservice.inventory.inventory_app.entity.Item;
+import com.starservice.inventory.inventory_app.entity.ItemEmployeeStockValue;
+import com.starservice.inventory.inventory_app.entity.ItemOfficeStockValue;
 import com.starservice.inventory.inventory_app.entity.OfficeStock;
 import com.starservice.inventory.inventory_app.enums.Company;
 import com.starservice.inventory.inventory_app.repository.DefectiveStockRepository;
 import com.starservice.inventory.inventory_app.repository.EmployeeStockRepository;
+import com.starservice.inventory.inventory_app.repository.ItemEmployeeStockValueRepository;
+import com.starservice.inventory.inventory_app.repository.ItemOfficeStockValueRepository;
 import com.starservice.inventory.inventory_app.repository.ItemRepository;
 import com.starservice.inventory.inventory_app.repository.OfficeStockRepository;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +59,12 @@ public class StockReportService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private ItemOfficeStockValueRepository itemOfficeStockValueRepository;
+
+    @Autowired
+    private ItemEmployeeStockValueRepository itemEmployeeStockValueRepository;
+
     @Transactional(readOnly = true)
     public byte[] generateOfficeStockReport() {
         Company company = getCompanyFromToken();
@@ -64,7 +74,7 @@ public class StockReportService {
             Sheet sheet = workbook.createSheet("Office Stock");
             createTitleRow(sheet, "Office Stock Report", reportDate);
             createHeaderRow(sheet, new String[]{
-                    "Sl No", "Item Code", "Item Desc", "HSN Code", "Quantity"
+                    "Sl No", "Item Code", "Item Desc", "HSN Code", "Quantity", "Stock Value"
             });
 
             int rowIndex = 2;
@@ -85,6 +95,11 @@ public class StockReportService {
                         company
                 );
 
+                Map<String, String> stockValueByItemCode = getOfficeStockValueByItemCode(
+                        page.getContent().stream().map(OfficeStock::getItemCode).toList(),
+                        company
+                );
+
                 for (OfficeStock stock : page.getContent()) {
                     Row row = sheet.createRow(rowIndex++);
                     writeCell(row, 0, slNo++);
@@ -92,6 +107,7 @@ public class StockReportService {
                     writeCell(row, 2, stock.getItemDesc());
                     writeCell(row, 3, hsnByItemCode.get(stock.getItemCode()));
                     writeCell(row, 4, stock.getQuantity());
+                    writeCell(row, 5, stockValueByItemCode.get(stock.getItemCode()));
                 }
 
                 if (!page.hasNext()) {
@@ -102,7 +118,7 @@ public class StockReportService {
                 pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("itemCode").ascending());
             }
 
-            autoSizeColumns(sheet, 5);
+            autoSizeColumns(sheet, 6);
             workbook.write(outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
@@ -119,7 +135,7 @@ public class StockReportService {
             Sheet sheet = workbook.createSheet("Employee Stock");
             createTitleRow(sheet, "Employee Stock Report", reportDate);
             createHeaderRow(sheet, new String[]{
-                    "Sl No", "Employee Name", "Item Code", "Item Desc", "HSN Code", "Quantity"
+                    "Sl No", "Employee Name", "Item Code", "Item Desc", "HSN Code", "Quantity", "Stock Value"
             });
 
             int rowIndex = 2;
@@ -144,6 +160,11 @@ public class StockReportService {
                         company
                 );
 
+                Map<String, String> stockValueByEmpAndItem = getEmployeeStockValueByEmpAndItem(
+                        page.getContent().stream().map(EmployeeStock::getItemCode).toList(),
+                        company
+                );
+
                 for (EmployeeStock stock : page.getContent()) {
                     Row row = sheet.createRow(rowIndex++);
                     writeCell(row, 0, slNo++);
@@ -152,6 +173,8 @@ public class StockReportService {
                     writeCell(row, 3, stock.getItemDesc());
                     writeCell(row, 4, hsnByItemCode.get(stock.getItemCode()));
                     writeCell(row, 5, stock.getQuantity());
+                    writeCell(row, 6, stockValueByEmpAndItem.get(
+                            employeeStockValueKey(stock.getEmployeeId(), stock.getItemCode())));
                 }
 
                 if (!page.hasNext()) {
@@ -166,7 +189,7 @@ public class StockReportService {
                 );
             }
 
-            autoSizeColumns(sheet, 6);
+            autoSizeColumns(sheet, 7);
             workbook.write(outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
@@ -255,6 +278,44 @@ public class StockReportService {
                         item -> item.getHsnCode() != null ? item.getHsnCode() : "",
                         (existing, replacement) -> existing
                 ));
+    }
+
+    private Map<String, String> getOfficeStockValueByItemCode(List<String> itemCodes, Company company) {
+        if (itemCodes == null || itemCodes.isEmpty()) {
+            return Map.of();
+        }
+
+        List<String> distinctItemCodes = itemCodes.stream().distinct().toList();
+        List<ItemOfficeStockValue> stockValues =
+                itemOfficeStockValueRepository.findByItemCodeInAndDefaultCompany(distinctItemCodes, company);
+
+        return stockValues.stream()
+                .collect(Collectors.toMap(
+                        ItemOfficeStockValue::getItemCode,
+                        stockValue -> stockValue.getValue() != null ? stockValue.getValue() : "",
+                        (existing, replacement) -> existing
+                ));
+    }
+
+    private Map<String, String> getEmployeeStockValueByEmpAndItem(List<String> itemCodes, Company company) {
+        if (itemCodes == null || itemCodes.isEmpty()) {
+            return Map.of();
+        }
+
+        List<String> distinctItemCodes = itemCodes.stream().distinct().toList();
+        List<ItemEmployeeStockValue> stockValues =
+                itemEmployeeStockValueRepository.findByItemCodeInAndDefaultCompany(distinctItemCodes, company);
+
+        return stockValues.stream()
+                .collect(Collectors.toMap(
+                        stockValue -> employeeStockValueKey(stockValue.getEmpId(), stockValue.getItemCode()),
+                        stockValue -> stockValue.getValue() != null ? stockValue.getValue() : "",
+                        (existing, replacement) -> existing
+                ));
+    }
+
+    private String employeeStockValueKey(String empId, String itemCode) {
+        return empId + "|" + itemCode;
     }
 
     private void createTitleRow(Sheet sheet, String title, String reportDate) {

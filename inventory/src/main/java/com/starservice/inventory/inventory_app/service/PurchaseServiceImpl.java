@@ -1,7 +1,6 @@
 package com.starservice.inventory.inventory_app.service;
 
 import com.starservice.inventory.inventory_app.dto.purchase.PurchaseRequestDTO;
-import com.starservice.inventory.inventory_app.dto.purchase.PurchaseResponseDTO;
 import com.starservice.inventory.inventory_app.entity.Purchase;
 import com.starservice.inventory.inventory_app.entity.PurchaseItem;
 import com.starservice.inventory.inventory_app.enums.Company;
@@ -27,6 +26,9 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Autowired
     private final OfficeStockService officeStockService;
+
+    @Autowired
+    private ItemOfficeStockValueService itemOfficeStockValueService;
 
     @Override
     @org.springframework.transaction.annotation.Transactional
@@ -80,6 +82,8 @@ public class PurchaseServiceImpl implements PurchaseService {
             purchaseItemRepository.saveAll(items);
 
             officeStockService.addStockFromPurchaseItems(items, defaultCompany);
+
+            itemOfficeStockValueService.updateStockValue(items, defaultCompany);
 
             return "Purchase created successfully";
 
