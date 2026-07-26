@@ -3,6 +3,7 @@ package com.starservice.inventory.inventory_app.controller;
 import com.starservice.inventory.inventory_app.dto.common.ApiResponse;
 import com.starservice.inventory.inventory_app.dto.common.PageResponse;
 import com.starservice.inventory.inventory_app.dto.users.AddUserRequest;
+import com.starservice.inventory.inventory_app.dto.users.ForgotPasswordRequest;
 import com.starservice.inventory.inventory_app.dto.users.UpdateUserRequest;
 import com.starservice.inventory.inventory_app.dto.users.UserResponse;
 import com.starservice.inventory.inventory_app.service.UserService;
@@ -106,4 +107,39 @@ public class UserController {
                             .build());
         }
     }
+
+    @PostMapping("/users/forgotPassword")
+    public ResponseEntity<ApiResponse<?>> forgotPassword(
+            @RequestBody ForgotPasswordRequest request) {
+
+        try {
+            userService.forgotPassword(request);
+
+            return ResponseEntity.ok(
+                    ApiResponse.builder()
+                            .success(true)
+                            .message("Password updated successfully")
+                            .build()
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .build()
+            );
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    ApiResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .build()
+            );
+        }
+    }
+
 }

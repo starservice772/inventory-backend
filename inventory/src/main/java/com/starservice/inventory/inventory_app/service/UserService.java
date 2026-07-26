@@ -1,6 +1,7 @@
 package com.starservice.inventory.inventory_app.service;
 
 import com.starservice.inventory.inventory_app.dto.common.PageResponse;
+import com.starservice.inventory.inventory_app.dto.users.ForgotPasswordRequest;
 import com.starservice.inventory.inventory_app.dto.users.UpdateUserRequest;
 import com.starservice.inventory.inventory_app.dto.users.UserResponse;
 import com.starservice.inventory.inventory_app.enums.Company;
@@ -278,5 +279,22 @@ public class UserService {
         user.setUpdatedDate(Instant.now());
         userRepository.save(user);
         return mapToResponse(user);
+    }
+
+    public void forgotPassword(ForgotPasswordRequest request) {
+
+        Company company = getCompanyFromToken();
+
+        User user = userRepository.findByIdAndCompanyAndDelFlFalse(request.getId(), company)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!user.getUsername().equals(request.getUsername())) {
+            throw new RuntimeException("Invalid username");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setUpdatedDate(Instant.now());
+
+        userRepository.save(user);
     }
 }
