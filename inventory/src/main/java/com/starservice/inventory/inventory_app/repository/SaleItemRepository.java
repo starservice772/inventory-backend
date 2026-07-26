@@ -10,4 +10,6 @@ import java.util.List;
 public interface SaleItemRepository extends JpaRepository<SaleItem, String> {
 
     List<SaleItem> findBySaleId(String saleId);
+
+    List<SaleItem> findBySaleIdIn(List<String> saleIds);
 }
