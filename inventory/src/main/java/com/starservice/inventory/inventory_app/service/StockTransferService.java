@@ -40,6 +40,9 @@ public class StockTransferService {
     @Autowired
     private DefectiveStockRepository defectiveStockRepository;
 
+    @Autowired
+    private ItemOfficeStockValueService itemOfficeStockValueService;
+
     @Transactional
     public String transferStock(StockTransferRequest request) {
         validateRequest(request);
@@ -84,6 +87,10 @@ public class StockTransferService {
 
         officeStock.setQuantity(officeStock.getQuantity() - quantity);
         officeStockRepository.save(officeStock);
+
+        String itemDesc = resolveItemDesc(item, officeStock.getItemDesc());
+        itemOfficeStockValueService.transferToEmployee(
+                request.getEmpId(), item.getItemCode(), quantity, company, itemDesc);
 
         employeeStockRepository
                 .findByItemCodeAndEmployeeIdAndDefaultCompany(item.getItemCode(), request.getEmpId(), company)
@@ -144,6 +151,10 @@ public class StockTransferService {
             employeeStock.setItemDesc(item.getItemDesc());
         }
         employeeStockRepository.save(employeeStock);
+
+        String itemDesc = resolveItemDesc(item, employeeStock.getItemDesc());
+        itemOfficeStockValueService.returnFromEmployee(
+                request.getEmpId(), item.getItemCode(), quantity, company, itemDesc);
 
         officeStockRepository
                 .findByItemCodeAndDefaultCompany(item.getItemCode(), company)
@@ -252,6 +263,13 @@ public class StockTransferService {
                 .build();
 
         stockTransferHistoryRepository.save(history);
+    }
+
+    private String resolveItemDesc(StockTransferItemDTO item, String fallbackDesc) {
+        if (item.getItemDesc() != null && !item.getItemDesc().isBlank()) {
+            return item.getItemDesc();
+        }
+        return fallbackDesc;
     }
 
     private void validateRequest(StockTransferRequest request) {
