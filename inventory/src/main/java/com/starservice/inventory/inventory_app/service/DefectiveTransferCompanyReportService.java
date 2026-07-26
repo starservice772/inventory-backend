@@ -1,10 +1,8 @@
 package com.starservice.inventory.inventory_app.service;
 
-import com.starservice.inventory.inventory_app.entity.Sale;
-import com.starservice.inventory.inventory_app.entity.SaleItem;
+import com.starservice.inventory.inventory_app.entity.DefectiveTransferCompanyHistory;
 import com.starservice.inventory.inventory_app.enums.Company;
-import com.starservice.inventory.inventory_app.repository.SaleItemRepository;
-import com.starservice.inventory.inventory_app.repository.SaleRepository;
+import com.starservice.inventory.inventory_app.repository.DefectiveTransferCompanyHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -24,14 +22,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class SaleReportService {
+public class DefectiveTransferCompanyReportService {
 
     private static final int BATCH_SIZE = 100;
     private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
@@ -42,81 +37,60 @@ public class SaleReportService {
     private static final DateTimeFormatter FILE_DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    private final SaleRepository saleRepository;
-    private final SaleItemRepository saleItemRepository;
+    private final DefectiveTransferCompanyHistoryRepository defectiveTransferCompanyHistoryRepository;
 
     @Transactional(readOnly = true)
-    public byte[] generateSaleReportExcel(Instant fromDate, Instant toDate) throws IOException {
+    public byte[] generateDefectiveTransferCompanyReportExcel(Instant fromDate, Instant toDate) throws IOException {
         Company company = getCompanyFromToken();
         String reportDate = getCurrentIstDateTime();
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            Sheet sheet = workbook.createSheet("Sale Report");
-            createTitleRow(sheet, "Sale Report", reportDate);
+            Sheet sheet = workbook.createSheet("Defective Transfer to Company Report");
+            createTitleRow(sheet, "Defective Stock Transfer to Company Transaction Report", reportDate);
             String[] headers = {
-                    "SL.NO.", "DATE", "ENGINEER'S NAME", "ITEM CODE", "ITEM DESCRIPTION",
-                    "QUANTITY", "RATE", "AMOUNT", "WORK ORDER NO.", "INVOICE NO.", "INVOICE DATE"
+                    "DATE", "ITEM CODE", "ITEM DESCRIPTION", "QUANTITY"
             };
             createHeaderRow(sheet, headers);
 
             int rowIndex = 2;
-            int slNo = 1;
             int pageNo = 0;
-            Pageable pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("createdDate").ascending());
+            Pageable pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("transferDate").ascending());
 
             while (true) {
-                Page<Sale> salePage = saleRepository.findByDefaultCompanyAndCreatedDateBetweenOrderByCreatedDateAsc(
+                Page<DefectiveTransferCompanyHistory> historyPage = defectiveTransferCompanyHistoryRepository.findByDefaultCompanyAndTransferDateBetweenOrderByTransferDateAsc(
                         company, fromDate, toDate, pageable);
 
-                if (salePage.isEmpty()) {
+                if (historyPage.isEmpty()) {
                     break;
                 }
 
-                List<String> saleIds = salePage.getContent().stream()
-                        .map(Sale::getUuid)
-                        .collect(Collectors.toList());
-
-                Map<String, List<SaleItem>> saleItemsMap = saleItemRepository.findBySaleIdIn(saleIds)
-                        .stream()
-                        .collect(Collectors.groupingBy(SaleItem::getSaleId));
-
-                for (Sale sale : salePage.getContent()) {
-                    List<SaleItem> saleItems = saleItemsMap.getOrDefault(sale.getUuid(), new ArrayList<>());
-                    for (SaleItem item : saleItems) {
-                        Row row = sheet.createRow(rowIndex++);
-                        writeCell(row, 0, slNo++);
-                        writeCell(row, 1, item.getCreatedDate() != null ? item.getCreatedDate().atZone(IST).format(REPORT_DATE_FORMAT) : "");
-                        writeCell(row, 2, sale.getEmpName());
-                        writeCell(row, 3, item.getItemCode());
-                        writeCell(row, 4, item.getItemDesc());
-                        writeCell(row, 5, item.getQuantity());
-                        writeCell(row, 6, item.getRate());
-                        writeCell(row, 7, item.getTotal()); // Assuming 'total' in SaleItem corresponds to 'AMOUNT'
-                        writeCell(row, 8, sale.getWorkOrderNo());
-                        writeCell(row, 9, sale.getInvoiceNo());
-                        writeCell(row, 10, sale.getInvoiceDate());
-                    }
+                for (DefectiveTransferCompanyHistory history : historyPage.getContent()) {
+                    Row row = sheet.createRow(rowIndex++);
+                    writeCell(row, 0, history.getTransferDate() != null ? history.getTransferDate().atZone(IST).format(REPORT_DATE_FORMAT) : "");
+                    writeCell(row, 1, history.getItemCode());
+                    writeCell(row, 2, history.getItemDesc());
+                    writeCell(row, 3, history.getQuantity());
                 }
 
-                if (!salePage.hasNext()) {
+                if (!historyPage.hasNext()) {
                     break;
                 }
 
                 pageNo++;
-                pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("createdDate").ascending());
+                pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("transferDate").ascending());
             }
 
             autoSizeColumns(sheet, headers.length);
             workbook.write(outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to generate sale report: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to generate defective stock transfer to company report: " + e.getMessage(), e);
         }
     }
 
-    public String getSaleReportFileName(Instant fromDate, Instant toDate) {
+    public String getDefectiveTransferCompanyReportFileName(Instant fromDate, Instant toDate) {
         return String.format(
-                "sales_report_%s_to_%s.xlsx",
+                "defective_transfer_company_report_%s_to_%s.xlsx",
                 fromDate.atZone(IST).format(FILE_DATE_FORMAT),
                 toDate.atZone(IST).format(FILE_DATE_FORMAT)
         );

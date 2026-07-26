@@ -45,4 +45,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, String> {
             """)
     List<Employee> searchEmployeesByName(@Param("company") Company company,
             @Param("searchKey") String searchKey);
+
+    List<Employee> findByIdInAndCompanyAndDelFlFalse(List<String> ids, Company company);
 }
