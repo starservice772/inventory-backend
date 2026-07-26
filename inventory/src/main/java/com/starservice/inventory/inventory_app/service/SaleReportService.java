@@ -1,11 +1,10 @@
 package com.starservice.inventory.inventory_app.service;
 
-import com.starservice.inventory.inventory_app.dto.PurchaseReportDTO;
-import com.starservice.inventory.inventory_app.entity.Purchase;
-import com.starservice.inventory.inventory_app.entity.PurchaseItem;
+import com.starservice.inventory.inventory_app.entity.Sale;
+import com.starservice.inventory.inventory_app.entity.SaleItem;
 import com.starservice.inventory.inventory_app.enums.Company;
-import com.starservice.inventory.inventory_app.repository.PurchaseItemRepository;
-import com.starservice.inventory.inventory_app.repository.PurchaseRepository;
+import com.starservice.inventory.inventory_app.repository.SaleItemRepository;
+import com.starservice.inventory.inventory_app.repository.SaleRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PurchaseReportService {
+public class SaleReportService {
 
     private static final int BATCH_SIZE = 100;
     private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
@@ -43,23 +42,22 @@ public class PurchaseReportService {
     private static final DateTimeFormatter FILE_DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    private final PurchaseRepository purchaseRepository;
-    private final PurchaseItemRepository purchaseItemRepository;
+    private final SaleRepository saleRepository;
+    private final SaleItemRepository saleItemRepository;
 
     @Transactional(readOnly = true)
-    public byte[] generatePurchaseReportExcel(Instant fromDate, Instant toDate) throws IOException {
+    public byte[] generateSaleReportExcel(Instant fromDate, Instant toDate) throws IOException {
         Company company = getCompanyFromToken();
         String reportDate = getCurrentIstDateTime();
-        List<PurchaseReportDTO> reportData = new ArrayList<>();
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            Sheet sheet = workbook.createSheet("Purchase Report");
-            createTitleRow(sheet, "Purchase Report", reportDate);
-            createHeaderRow(sheet, new String[]{
-                    "SL.NO.", "DATE", "ITEM CODE", "ITEM DESCRIPTION", "HSN", "QUANTITY",
-                    "RATE DP", "GST", "TOTAL DP", "TOTAL PRICE", "TYPE", "INVOICE NO.",
-                    "INVOICE DATE", "GST NO."
-            });
+            Sheet sheet = workbook.createSheet("Sale Report");
+            createTitleRow(sheet, "Sale Report", reportDate);
+            String[] headers = {
+                    "SL.NO.", "DATE", "ENGINEER'S NAME", "ITEM CODE", "ITEM DESCRIPTION",
+                    "QUANTITY", "RATE", "AMOUNT", "WORK ORDER NO.", "INVOICE NO.", "INVOICE DATE"
+            };
+            createHeaderRow(sheet, headers);
 
             int rowIndex = 2;
             int slNo = 1;
@@ -67,44 +65,40 @@ public class PurchaseReportService {
             Pageable pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("createdDate").ascending());
 
             while (true) {
-                Page<Purchase> purchasePage = purchaseRepository.findByDefaultCompanyAndCreatedDateBetweenOrderByCreatedDateAsc(
+                Page<Sale> salePage = saleRepository.findByDefaultCompanyAndCreatedDateBetweenOrderByCreatedDateAsc(
                         company, fromDate, toDate, pageable);
 
-                if (purchasePage.isEmpty()) {
+                if (salePage.isEmpty()) {
                     break;
                 }
 
-                List<String> purchaseIds = purchasePage.getContent().stream()
-                        .map(Purchase::getUuid)
+                List<String> saleIds = salePage.getContent().stream()
+                        .map(Sale::getUuid)
                         .collect(Collectors.toList());
 
-                // Fetch all purchase items for the current batch of purchases
-                Map<String, List<PurchaseItem>> purchaseItemsMap = purchaseItemRepository.findByPurchaseIdIn(purchaseIds)
+                Map<String, List<SaleItem>> saleItemsMap = saleItemRepository.findBySaleIdIn(saleIds)
                         .stream()
-                        .collect(Collectors.groupingBy(PurchaseItem::getPurchaseId));
+                        .collect(Collectors.groupingBy(SaleItem::getSaleId));
 
-                for (Purchase purchase : purchasePage.getContent()) {
-                    List<PurchaseItem> purchaseItems = purchaseItemsMap.getOrDefault(purchase.getUuid(), new ArrayList<>());
-                    for (PurchaseItem item : purchaseItems) {
+                for (Sale sale : salePage.getContent()) {
+                    List<SaleItem> saleItems = saleItemsMap.getOrDefault(sale.getUuid(), new ArrayList<>());
+                    for (SaleItem item : saleItems) {
                         Row row = sheet.createRow(rowIndex++);
                         writeCell(row, 0, slNo++);
                         writeCell(row, 1, item.getCreatedDate() != null ? item.getCreatedDate().atZone(IST).format(REPORT_DATE_FORMAT) : "");
-                        writeCell(row, 2, item.getItemCode());
-                        writeCell(row, 3, item.getItemDesc());
-                        writeCell(row, 4, item.getHsnCode());
+                        writeCell(row, 2, sale.getEmpName());
+                        writeCell(row, 3, item.getItemCode());
+                        writeCell(row, 4, item.getItemDesc());
                         writeCell(row, 5, item.getQuantity());
-                        writeCell(row, 6, item.getRateDp());
-                        writeCell(row, 7, item.getGstValue());
-                        writeCell(row, 8, item.getTotalDp());
-                        writeCell(row, 9, item.getTotalPrice());
-                        writeCell(row, 10, getInvoiceType(purchase.getInvoiceType()));
-                        writeCell(row, 11, purchase.getInvoiceNo());
-                        writeCell(row, 12, purchase.getInvoiceDate());
-                        writeCell(row, 13, purchase.getGstNo());
+                        writeCell(row, 6, item.getRate());
+                        writeCell(row, 7, item.getTotal()); // Assuming 'total' in SaleItem corresponds to 'AMOUNT'
+                        writeCell(row, 8, sale.getWorkOrderNo());
+                        writeCell(row, 9, sale.getInvoiceNo());
+                        writeCell(row, 10, sale.getInvoiceDate());
                     }
                 }
 
-                if (!purchasePage.hasNext()) {
+                if (!salePage.hasNext()) {
                     break;
                 }
 
@@ -112,21 +106,20 @@ public class PurchaseReportService {
                 pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("createdDate").ascending());
             }
 
-            autoSizeColumns(sheet, 14);
+            autoSizeColumns(sheet, headers.length);
             workbook.write(outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to generate purchase report: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to generate sale report: " + e.getMessage(), e);
         }
     }
 
-    public String getPurchaseReportFileName(Instant fromDate, Instant toDate) {
+    public String getSaleReportFileName(Instant fromDate, Instant toDate) {
         return String.format(
-                "purchase_report_%s_to_%s.xlsx",
+                "sales_report_%s_to_%s.xlsx",
                 fromDate.atZone(IST).format(FILE_DATE_FORMAT),
                 toDate.atZone(IST).format(FILE_DATE_FORMAT)
-        );
-    }
+        );    }
 
     private void createTitleRow(Sheet sheet, String title, String reportDate) {
         Row titleRow = sheet.createRow(0);
@@ -163,13 +156,6 @@ public class PurchaseReportService {
         return Instant.now().atZone(IST).format(REPORT_DATE_TIME_FORMAT) + " IST";
     }
 
-    private String getCurrentIstFileDate() {
-        return Instant.now().atZone(IST).format(FILE_DATE_FORMAT);
-    }
-
-    private String getInvoiceType(String invoiceType) {
-        return "I".equalsIgnoreCase(invoiceType) ? "Invoice" : "Challan";
-    }
 
     private Company getCompanyFromToken() {
         return (Company) SecurityContextHolder
