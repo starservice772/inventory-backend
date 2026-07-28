@@ -91,7 +91,7 @@ public class SaleReportService {
                         writeCell(row, 4, item.getItemDesc());
                         writeCell(row, 5, item.getQuantity());
                         writeCell(row, 6, item.getRate());
-                        writeCell(row, 7, item.getTotal()); // Assuming 'total' in SaleItem corresponds to 'AMOUNT'
+                        writeCell(row, 7, item.getTotalPrice()); // Assuming 'total' in SaleItem corresponds to 'AMOUNT'
                         writeCell(row, 8, sale.getWorkOrderNo());
                         writeCell(row, 9, sale.getInvoiceNo());
                         writeCell(row, 10, sale.getInvoiceDate());
