@@ -41,9 +41,6 @@ public class SaleItem {
     @Column(name = "quantity")
     private String quantity;
 
-    @Column(name = "gst_value")
-    private String gstValue;
-
     @Column(name = "total")
     private String total;
 

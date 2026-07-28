@@ -90,7 +90,7 @@ public class SaleServiceImpl implements SaleService {
                         .hsnCode(item.getHsnCode())
                         .rate(item.getRate())
                         .quantity(item.getQuantity())
-                        .gstValue(item.getGst())
+//                        .gstValue(item.getGst())
                         .total(item.getTotal())
                         .totalPrice(item.getTotalPrice())
                         .createdDate(now)

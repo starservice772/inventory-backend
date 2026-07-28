@@ -14,7 +14,7 @@ public class SaleItemDTO {
     @JsonAlias("quantiy")
     private String quantity;
 
-    private String gst;
+//    private String gst;
     private String total;
     private String totalPrice;
 }
