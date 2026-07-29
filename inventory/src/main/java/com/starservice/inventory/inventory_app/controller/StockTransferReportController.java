@@ -18,7 +18,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 
 @RestController
-@RequestMapping("/api/report/stock/transfer")
+@RequestMapping("/report/stock/transfer")
 @RequiredArgsConstructor
 public class StockTransferReportController {
 

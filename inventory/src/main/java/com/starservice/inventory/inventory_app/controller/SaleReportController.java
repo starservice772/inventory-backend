@@ -18,7 +18,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 
 @RestController
-@RequestMapping("/api/report/sale")
+@RequestMapping("/report/sale")
 @RequiredArgsConstructor
 public class SaleReportController {
 
