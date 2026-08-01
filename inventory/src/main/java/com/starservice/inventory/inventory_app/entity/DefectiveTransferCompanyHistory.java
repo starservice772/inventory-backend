@@ -31,7 +31,10 @@ public class DefectiveTransferCompanyHistory {
     private Integer quantity;
 
     @Column(name = "transfer_date", nullable = false)
-    private Instant transferDate;
+    private String transferDate;
+
+    @Column(name="crtd_dt")
+    private Instant crtdDt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "default_company")

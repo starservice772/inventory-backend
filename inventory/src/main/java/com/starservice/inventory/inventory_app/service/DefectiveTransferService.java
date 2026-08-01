@@ -40,6 +40,7 @@ public class DefectiveTransferService {
     public String transferDefectiveToCompany(DefectiveTransferToCompanyRequest request) {
         validateRequest(request);
         Company company = getCompanyFromToken();
+        String date = request.getDate();
 
         for (DefectiveTransferItemDTO item : request.getItems()) {
             int quantity = parseQuantity(item.getQuantity());
@@ -58,12 +59,13 @@ public class DefectiveTransferService {
             }
 
             defectiveStock.setQuantity(defectiveStock.getQuantity() - quantity);
+            defectiveStock.setDate(date);
             if (item.getItemDesc() != null && !item.getItemDesc().isBlank()) {
                 defectiveStock.setItemDesc(item.getItemDesc());
             }
             defectiveStockRepository.save(defectiveStock);
 
-            saveTransferHistory(item, quantity, company);
+            saveTransferHistory(item, quantity, company, date);
         }
 
         return "Defective stock transferred to company successfully";
@@ -110,13 +112,14 @@ public class DefectiveTransferService {
                 .build();
     }
 
-    private void saveTransferHistory(DefectiveTransferItemDTO item, int quantity, Company company) {
+    private void saveTransferHistory(DefectiveTransferItemDTO item, int quantity, Company company, String date) {
         DefectiveTransferCompanyHistory history = DefectiveTransferCompanyHistory.builder()
                 .uuid(UUID.randomUUID().toString())
                 .itemCode(item.getItemCode())
                 .itemDesc(item.getItemDesc())
                 .quantity(quantity)
-                .transferDate(Instant.now())
+                .transferDate(date)
+                .crtdDt(Instant.now())
                 .defaultCompany(company)
                 .build();
 

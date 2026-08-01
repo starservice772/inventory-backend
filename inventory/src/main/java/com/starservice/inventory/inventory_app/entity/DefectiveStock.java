@@ -19,6 +19,9 @@ public class DefectiveStock {
     @Column(name = "uuid")
     private String uuid;
 
+    @Column(name = "date")
+    private String date;
+
     @Column(name = "item_code", nullable = false)
     private String itemCode;
 
