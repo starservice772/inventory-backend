@@ -66,7 +66,7 @@ public class DefectiveTransferCompanyReportService {
 
                 for (DefectiveTransferCompanyHistory history : historyPage.getContent()) {
                     Row row = sheet.createRow(rowIndex++);
-                    writeCell(row, 0, history.getTransferDate() != null ? history.getTransferDate().atZone(IST).format(REPORT_DATE_FORMAT) : "");
+                    writeCell(row, 0, history.getTransferDate() != null ? history.getTransferDate(): "");
                     writeCell(row, 1, history.getItemCode());
                     writeCell(row, 2, history.getItemDesc());
                     writeCell(row, 3, history.getQuantity());
