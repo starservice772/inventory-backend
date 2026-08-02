@@ -12,9 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 
 @RestController
@@ -29,20 +27,18 @@ public class DefectiveTransferCompanyReportController {
             @RequestParam("fromDate") String fromDateStr,
             @RequestParam("toDate") String toDateStr) throws IOException {
 
-        Instant fromDate;
-        Instant toDate;
+        LocalDate fromDate;
+        LocalDate toDate;
 
         try {
-            fromDate = LocalDate.parse(fromDateStr)
-                    .atStartOfDay(ZoneId.systemDefault())
-                    .toInstant();
-            toDate = LocalDate.parse(toDateStr)
-                    .atStartOfDay(ZoneId.systemDefault())
-                    .plusDays(1) // Include the entire toDate
-                    .minusNanos(1) // To get to the end of the day
-                    .toInstant();
+            fromDate = LocalDate.parse(fromDateStr);
+            toDate = LocalDate.parse(toDateStr);
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid date format. Please use YYYY-MM-DD.");
+        }
+
+        if (toDate.isBefore(fromDate)) {
+            throw new IllegalArgumentException("toDate must be on or after fromDate");
         }
 
         byte[] excelBytes = defectiveTransferCompanyReportService.generateDefectiveTransferCompanyReportExcel(fromDate, toDate);
