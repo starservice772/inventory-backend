@@ -12,7 +12,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,9 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +39,7 @@ public class DefectiveTransferCompanyReportService {
     private final DefectiveTransferCompanyHistoryRepository defectiveTransferCompanyHistoryRepository;
 
     @Transactional(readOnly = true)
-    public byte[] generateDefectiveTransferCompanyReportExcel(Instant fromDate, Instant toDate) throws IOException {
+    public byte[] generateDefectiveTransferCompanyReportExcel(LocalDate fromDate, LocalDate toDate) throws IOException {
         Company company = getCompanyFromToken();
         String reportDate = getCurrentIstDateTime();
 
@@ -54,10 +53,10 @@ public class DefectiveTransferCompanyReportService {
 
             int rowIndex = 2;
             int pageNo = 0;
-            Pageable pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("transferDate").ascending());
+            Pageable pageable = PageRequest.of(pageNo, BATCH_SIZE);
 
             while (true) {
-                Page<DefectiveTransferCompanyHistory> historyPage = defectiveTransferCompanyHistoryRepository.findByDefaultCompanyAndTransferDateBetweenOrderByTransferDateAsc(
+                Page<DefectiveTransferCompanyHistory> historyPage = defectiveTransferCompanyHistoryRepository.findByCompanyAndTransferDateRange(
                         company, fromDate, toDate, pageable);
 
                 if (historyPage.isEmpty()) {
@@ -77,7 +76,7 @@ public class DefectiveTransferCompanyReportService {
                 }
 
                 pageNo++;
-                pageable = PageRequest.of(pageNo, BATCH_SIZE, Sort.by("transferDate").ascending());
+                pageable = PageRequest.of(pageNo, BATCH_SIZE);
             }
 
             autoSizeColumns(sheet, headers.length);
@@ -88,11 +87,11 @@ public class DefectiveTransferCompanyReportService {
         }
     }
 
-    public String getDefectiveTransferCompanyReportFileName(Instant fromDate, Instant toDate) {
+    public String getDefectiveTransferCompanyReportFileName(LocalDate fromDate, LocalDate toDate) {
         return String.format(
                 "defective_transfer_company_report_%s_to_%s.xlsx",
-                fromDate.atZone(IST).format(FILE_DATE_FORMAT),
-                toDate.atZone(IST).format(FILE_DATE_FORMAT)
+                fromDate.format(FILE_DATE_FORMAT),
+                toDate.format(FILE_DATE_FORMAT)
         );
     }
 

@@ -18,25 +18,25 @@ import java.time.Instant;
 public class DefectiveTransferCompanyHistory {
 
     @Id
-    @Column(name = "uuid")
+    @Column(name = "uuid", length = 100, nullable = false)
     private String uuid;
 
-    @Column(name = "item_code", nullable = false)
+    @Column(name = "item_code", length = 255, nullable = false)
     private String itemCode;
 
-    @Column(name = "item_desc")
+    @Column(name = "item_desc", length = 255)
     private String itemDesc;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "transfer_date", nullable = false)
-    private String transferDate;
-
-    @Column(name="crtd_dt")
+    @Column(name = "crtd_dt", nullable = false)
     private Instant crtdDt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "default_company")
+    @Column(name = "default_company", length = 50)
     private Company defaultCompany;
+
+    @Column(name = "transfer_date", length = 50)
+    private String transferDate;
 }
