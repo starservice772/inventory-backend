@@ -107,7 +107,7 @@ public class StockReportService {
                     writeCell(row, 2, stock.getItemDesc());
                     writeCell(row, 3, hsnByItemCode.get(stock.getItemCode()));
                     writeCell(row, 4, stock.getQuantity());
-                    writeCell(row, 5, stockValueByItemCode.get(stock.getItemCode()));
+                    writeNumericCell(row, 5, stockValueByItemCode.get(stock.getItemCode()));
                 }
 
                 if (!page.hasNext()) {
@@ -173,7 +173,7 @@ public class StockReportService {
                     writeCell(row, 3, stock.getItemDesc());
                     writeCell(row, 4, hsnByItemCode.get(stock.getItemCode()));
                     writeCell(row, 5, stock.getQuantity());
-                    writeCell(row, 6, stockValueByEmpAndItem.get(
+                    writeNumericCell(row, 6, stockValueByEmpAndItem.get(
                             employeeStockValueKey(stock.getEmployeeId(), stock.getItemCode())));
                 }
 
@@ -362,5 +362,42 @@ public class StockReportService {
                 .getContext()
                 .getAuthentication()
                 .getDetails();
+    }
+
+    private void writeNumericCell(Row row, int columnIndex, Object value) {
+        Cell cell = row.createCell(columnIndex);
+
+        if (value == null) {
+            cell.setBlank();
+            return;
+        }
+
+        if (value instanceof Number number) {
+            cell.setCellValue(number.doubleValue());
+            return;
+        }
+
+        if (value instanceof String stringValue) {
+            String valueStr = stringValue.trim();
+
+            if (valueStr.isEmpty()) {
+                cell.setBlank();
+                return;
+            }
+
+            try {
+                cell.setCellValue(Double.parseDouble(valueStr));
+            } catch (NumberFormatException e) {
+                cell.setCellValue(valueStr);
+            }
+
+            return;
+        }
+
+        try {
+            cell.setCellValue(Double.parseDouble(value.toString()));
+        } catch (NumberFormatException e) {
+            cell.setCellValue(String.valueOf(value));
+        }
     }
 }
