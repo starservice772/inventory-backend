@@ -92,11 +92,11 @@ public class PurchaseReportService {
                         writeCell(row, 2, item.getItemCode());
                         writeCell(row, 3, item.getItemDesc());
                         writeCell(row, 4, item.getHsnCode());
-                        writeCell(row, 5, item.getQuantity());
-                        writeCell(row, 6, item.getRateDp());
-                        writeCell(row, 7, item.getGstValue());
-                        writeCell(row, 8, item.getTotalDp());
-                        writeCell(row, 9, item.getTotalPrice());
+                        writeNumericCell(row, 5, item.getQuantity());
+                        writeNumericCell(row, 6, item.getRateDp());
+                        writeNumericCell(row, 7, item.getGstValue());
+                        writeNumericCell(row, 8, item.getTotalDp());
+                        writeNumericCell(row, 9, item.getTotalPrice());
                         writeCell(row, 10, getInvoiceType(purchase.getInvoiceType()));
                         writeCell(row, 11, purchase.getInvoiceNo());
                         writeCell(row, 12, purchase.getInvoiceDate());
@@ -176,5 +176,43 @@ public class PurchaseReportService {
                 .getContext()
                 .getAuthentication()
                 .getDetails();
+    }
+
+
+    private void writeNumericCell(Row row, int columnIndex, Object value) {
+        Cell cell = row.createCell(columnIndex);
+
+        if (value == null) {
+            cell.setBlank();
+            return;
+        }
+
+        if (value instanceof Number number) {
+            cell.setCellValue(number.doubleValue());
+            return;
+        }
+
+        if (value instanceof String stringValue) {
+            String valueStr = stringValue.trim();
+
+            if (valueStr.isEmpty()) {
+                cell.setBlank();
+                return;
+            }
+
+            try {
+                cell.setCellValue(Double.parseDouble(valueStr));
+            } catch (NumberFormatException e) {
+                cell.setCellValue(valueStr);
+            }
+
+            return;
+        }
+
+        try {
+            cell.setCellValue(Double.parseDouble(value.toString()));
+        } catch (NumberFormatException e) {
+            cell.setCellValue(String.valueOf(value));
+        }
     }
 }

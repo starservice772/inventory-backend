@@ -89,9 +89,9 @@ public class SaleReportService {
                         writeCell(row, 2, sale.getEmpName());
                         writeCell(row, 3, item.getItemCode());
                         writeCell(row, 4, item.getItemDesc());
-                        writeCell(row, 5, item.getQuantity());
-                        writeCell(row, 6, item.getRate());
-                        writeCell(row, 7, item.getTotalPrice()); // Assuming 'total' in SaleItem corresponds to 'AMOUNT'
+                        writeNumericCell(row, 5, item.getQuantity());
+                        writeNumericCell(row, 6, item.getRate());
+                        writeNumericCell(row, 7, item.getTotalPrice()); // Assuming 'total' in SaleItem corresponds to 'AMOUNT'
                         writeCell(row, 8, sale.getWorkOrderNo());
                         writeCell(row, 9, sale.getInvoiceNo());
                         writeCell(row, 10, sale.getInvoiceDate());
@@ -163,5 +163,43 @@ public class SaleReportService {
                 .getContext()
                 .getAuthentication()
                 .getDetails();
+    }
+
+
+    private void writeNumericCell(Row row, int columnIndex, Object value) {
+        Cell cell = row.createCell(columnIndex);
+
+        if (value == null) {
+            cell.setBlank();
+            return;
+        }
+
+        if (value instanceof Number number) {
+            cell.setCellValue(number.doubleValue());
+            return;
+        }
+
+        if (value instanceof String stringValue) {
+            String valueStr = stringValue.trim();
+
+            if (valueStr.isEmpty()) {
+                cell.setBlank();
+                return;
+            }
+
+            try {
+                cell.setCellValue(Double.parseDouble(valueStr));
+            } catch (NumberFormatException e) {
+                cell.setCellValue(valueStr);
+            }
+
+            return;
+        }
+
+        try {
+            cell.setCellValue(Double.parseDouble(value.toString()));
+        } catch (NumberFormatException e) {
+            cell.setCellValue(String.valueOf(value));
+        }
     }
 }
